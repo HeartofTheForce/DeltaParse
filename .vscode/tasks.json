@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "build",
+        "command": "dotnet build -p:GenerateFullPaths=true",
+        "options": {
+          "cwd": "DeltaParse"
+        },
+        "type": "shell",
+        "problemMatcher": "$msCompile"
+      },
+      {
+        "label": "build tests",
+        "command": "find . -name '*.Tests.csproj' | xargs dotnet build -p:GenerateFullPaths=true",
+        "type": "shell",
+        "problemMatcher": "$msCompile"
+      },
+      {
+        "label": "run tests",
+        "command": "find . -wholename '*/bin/*.Tests.dll' | xargs dotnet vstest --Parallel",
+        "type": "shell",
+        "problemMatcher": "$msCompile",
+        "dependsOn": "build tests"
+      },
+    ]
+}
