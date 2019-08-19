@@ -30,7 +30,7 @@ namespace DeltaParse.Processors
         {
             Builder.Clear();
 
-            List<int> startIndexes = new List<int>();
+            var startIndexes = new List<int>();
             if (templateToken != null)
             {
                 var matches = Regex.Matches(input, templateToken);

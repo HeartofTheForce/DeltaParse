@@ -7,7 +7,7 @@ namespace DeltaParse
     {
         public static int SubstringCount(string text, string pattern)
         {
-            return (text.Length - text.Replace(pattern, String.Empty).Length) / pattern.Length;
+            return (text.Length - text.Replace(pattern, string.Empty).Length) / pattern.Length;
         }
 
         public static void AddToDictionaryCollection<TKey, TValueCollection, TValue>(IDictionary<TKey, TValueCollection> dictionary, TKey key, TValue value)
