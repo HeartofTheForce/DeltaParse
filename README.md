@@ -1,4 +1,3 @@
-
 # What is DeltaParse?
 `DeltaParse` is a simple template based data extraction library.
 
