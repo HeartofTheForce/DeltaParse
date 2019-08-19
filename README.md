@@ -30,7 +30,7 @@ Results in
 # StandardProcessor vs MungeProcessor
 Standard processor uses regex to find and prepare template tokens for parsing and should work fine in the majority of situations.
 
-Munge processor guarantees that only template tokens in the template text will be considered when extracting data, it does however come with a larger memory/processing time cost.
+Munge processor guarantees that only template tokens in the template text will be considered when extracting data, it does however require more memory/processing time.
 
 Using MungeProcessor as follows
 ```
