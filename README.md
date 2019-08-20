@@ -39,11 +39,11 @@ Munge processor guarantees that only template tokens in the template text will b
 
 Using MungeProcessor as follows
 ```
-string  text  =  "The quick {{adjective}} brown fox {{verb}} over the lazy dog";
-string  template  =  "The quick {{adjective}} brown fox {{verb}} over the lazy dog";
+string text = "The quick {{adjective}} brown fox {{verb}} over the lazy dog";
+string template = "The quick {{adjective}} brown fox {{verb}} over the lazy dog";
 
-var  parser  =  new  Parser(template, new  MungeProcessor());
-var  results  =  parser.Parse(text);
+var parser = new  Parser(template, new  MungeProcessor());
+var results = parser.Parse(text);
 ```
 Results in
 ```
