@@ -1,21 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using DeltaParse.OutputBuilders;
 using DeltaParse.Processors;
 using DiffMatchPatch;
 
 namespace DeltaParse
 {
-    public class Parser
+    public class Parser<T>
     {
         private const string TemplateToken = "{{}}";
 
         private diff_match_patch DMP { get; }
         private IParseProcessor ParseProcessor { get; }
-        private List<string> VariableNames { get; }
+        private IOutputBuilder<T> OutputBuilder { get; }
+        private List<string> TokenNames { get; }
         private string Template { get; }
 
-        public Parser(string template, IParseProcessor parseProcessor)
+        public Parser(
+            string template,
+            IParseProcessor parseProcessor,
+            IOutputBuilder<T> outputBuilder)
         {
             DMP = new diff_match_patch()
             {
@@ -23,98 +28,98 @@ namespace DeltaParse
             };
 
             ParseProcessor = parseProcessor;
-            VariableNames = new List<string>();
+            OutputBuilder = outputBuilder;
+
+            TokenNames = new List<string>();
 
             Template = Regex.Replace(template, "{{(\\w*?)}}", m =>
             {
-                VariableNames.Add(m.Groups[1].Value);
+                TokenNames.Add(m.Groups[1].Value);
                 return TemplateToken;
             });
 
             Template = ParseProcessor.Preprocess(Template, TemplateToken);
         }
 
-        public ParseResult Parse(string input)
+        public T Parse(string input)
         {
             input = ParseProcessor.Preprocess(input, null);
 
             var diff = DMP.diff_main(Template, input, false);
 
-            return ParseValues(diff, VariableNames);
+            return ParseValues(input, diff, TokenNames);
         }
 
-        private ParseResult ParseValues(List<Diff> diff, List<string> variableNames)
+        private T ParseValues(string input, List<Diff> diffs, List<string> tokenNames)
         {
-            var output = new ParseResult
-            {
-                ParsedValues = new Dictionary<string, List<string>>(),
-                Difference = 0,
-            };
+            var output = OutputBuilder.InitializeOutput(diffs);
 
             int variableIndex = -1;
-            string value = null;
+            int? valueLength = null;
 
             int commonLength = 0;
-            int diff0 = 0;
-            int diff1 = 0;
+            int diffTemplate = 0;
+            int diffInput = 0;
+            int totalParsedLength = 0;
 
-            for (int i = 0; i < diff.Count; i++)
+            for (int i = 0; i <= diffs.Count; i++)
             {
-                var part = diff[i];
+                bool tokenProcessed = valueLength != null;
 
-                if (value != null)
+                int startOffset = 0;
+                if (i < diffs.Count)
                 {
-                    if (part.operation == Operation.INSERT)
+                    var part = diffs[i];
+
+                    if (valueLength != null && part.operation == Operation.INSERT)
                     {
-                        value += part.text;
+                        totalParsedLength += part.text.Length;
+                        valueLength += part.text.Length;
+
+                        tokenProcessed = false;
                     }
 
-                    if ((diff.Count - 1) == i || part.operation != Operation.INSERT)
+                    switch (part.operation)
                     {
-                        string parsedValue = ParseProcessor.Postprocess(value, null);
-                        if (!string.IsNullOrWhiteSpace(parsedValue))
-                        {
-                            Utilities.AddToDictionaryCollection(output.ParsedValues, variableNames[variableIndex], parsedValue);
-                        }
-                    }
+                        case Operation.DELETE:
+                            {
+                                int cnt = Utilities.SubstringCount(part.text, ParseProcessor.ProcessedToken);
+                                variableIndex += cnt;
+                                diffTemplate += part.text.Length - ParseProcessor.ProcessedToken.Length * cnt;
 
-                    if (part.operation != Operation.INSERT)
-                    {
-                        value = null;
-                    }
-                    else
-                    {
-                        continue;
+                                if (part.text.EndsWith(ParseProcessor.ProcessedToken))
+                                {
+                                    valueLength = 0;
+                                }
+                            }
+                            break;
+                        case Operation.INSERT:
+                            {
+                                diffInput += part.text.Length;
+                            }
+                            break;
+                        case Operation.EQUAL:
+                            {
+                                commonLength += part.text.Length;
+                                startOffset = -part.text.Length;
+                            }
+                            break;
                     }
                 }
 
-                switch (part.operation)
+                if (tokenProcessed)
                 {
-                    case Operation.DELETE:
-                        {
-                            int cnt = Utilities.SubstringCount(part.text, ParseProcessor.ProcessedToken);
-                            variableIndex += cnt;
-                            if (part.text.EndsWith(ParseProcessor.ProcessedToken))
-                            {
-                                value = "";
-                            }
-                            diff0 += part.text.Length - ParseProcessor.ProcessedToken.Length * cnt;
-                        }
-                        break;
-                    case Operation.INSERT:
-                        {
-                            diff1 += part.text.Length;
-                        }
-                        break;
-                    case Operation.EQUAL:
-                        {
-                            commonLength += part.text.Length;
-                        }
-                        break;
+                    int valueIndex = commonLength + startOffset + diffInput - valueLength.Value;
+
+                    string parsedValue = ParseProcessor.Postprocess(input.Substring(valueIndex, valueLength.Value), null);
+                    output = OutputBuilder.TokenParsed(output, tokenNames[variableIndex], parsedValue);
+
+                    valueLength = null;
                 }
             }
 
-            output.Difference = 1 - commonLength / (double)(commonLength + Math.Max(diff0, diff1));
+            double differenceNormalized = 1 - (double)commonLength / (commonLength + Math.Max(diffTemplate, diffInput - totalParsedLength));
+            output = OutputBuilder.FinalizeOutput(output, differenceNormalized);
 
             return output;
         }

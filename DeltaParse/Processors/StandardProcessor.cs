@@ -16,6 +16,13 @@ namespace DeltaParse.Processors
                     return ProcessedToken;
                 });
             }
+            else
+            {
+                input = Regex.Replace(input, Regex.Escape("{{}}"), m =>
+                {
+                    return "";
+                });
+            }
 
             return input;
         }

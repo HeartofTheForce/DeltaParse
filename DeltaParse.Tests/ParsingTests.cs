@@ -1,4 +1,5 @@
 ﻿using System;
+using DeltaParse.OutputBuilders;
 using DeltaParse.Processors;
 using NUnit.Framework;
 
@@ -13,7 +14,7 @@ namespace DeltaParse.Tests
             string text = "The quick brown fox jumps over the lazy dog";
             string template = "The quick {{colour}} fox jumps over the lazy {{animal}}";
 
-            var parser = new Parser(template, new StandardProcessor());
+            var parser = new Parser<SimpleResult>(template, new StandardProcessor(), new SimpleOutputBuilder());
 
             var results = parser.Parse(text);
 
@@ -27,7 +28,7 @@ namespace DeltaParse.Tests
             string text = "The quick brown fox jumps over the lazy dog";
             string template = "The {{adjective}} {{adjective}} fox {{verb}} over the {{adjective}} dog";
 
-            var parser = new Parser(template, new StandardProcessor());
+            var parser = new Parser<SimpleResult>(template, new StandardProcessor(), new SimpleOutputBuilder());
 
             var results = parser.Parse(text);
 
@@ -43,7 +44,7 @@ namespace DeltaParse.Tests
             string text = "The {{adjective}} {{adjective}} fox {{verb}} over the {{adjective}} dog";
             string template = "The {{adjective}} {{adjective}} fox {{verb}} over the {{adjective}} dog";
 
-            var parser = new Parser(template, new MungeProcessor());
+            var parser = new Parser<SimpleResult>(template, new MungeProcessor(), new SimpleOutputBuilder());
 
             var results = parser.Parse(text);
 
@@ -71,7 +72,7 @@ namespace DeltaParse.Tests
     </body>
 </html>";
 
-            var parser = new Parser(template, new StandardProcessor());
+            var parser = new Parser<SimpleResult>(template, new StandardProcessor(), new SimpleOutputBuilder());
 
             var results = parser.Parse(text);
 
@@ -125,7 +126,7 @@ namespace DeltaParse.Tests
     </body>
 </html>";
 
-            var parser = new Parser(template, new StandardProcessor());
+            var parser = new Parser<SimpleResult>(template, new StandardProcessor(), new SimpleOutputBuilder());
 
             var results = parser.Parse(text);
 

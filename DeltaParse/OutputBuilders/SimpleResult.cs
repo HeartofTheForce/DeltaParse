@@ -1,11 +1,10 @@
 using System.Collections.Generic;
-using DiffMatchPatch;
 
 namespace DeltaParse
 {
-    public class ParseResult
+    public class SimpleResult
     {
         public Dictionary<string, List<string>> ParsedValues { get; set; }
-        public double Difference { get; set; }
+        public double DifferenceNormalized { get; set; }
     }
 }
