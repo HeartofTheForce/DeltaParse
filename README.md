@@ -1,5 +1,5 @@
 # What is DeltaParse?
-`DeltaParse` is a simple template based data extraction tool, it is designed to be a part of a tool chain.
+`DeltaParse` is a simple template-based data extraction tool, it is designed to be a part of a tool chain.
 # How it works
 Given a template string with tokens matching `{{\\w*?}}` data is extracted using Google's [diff-match-patch](https://github.com/google/diff-match-patch)
 ```
