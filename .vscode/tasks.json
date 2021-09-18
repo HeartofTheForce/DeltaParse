@@ -5,20 +5,14 @@
         "label": "build",
         "command": "dotnet build -p:GenerateFullPaths=true",
         "options": {
-          "cwd": "DeltaParse"
+          "cwd": "src/DeltaParse"
         },
         "type": "shell",
         "problemMatcher": "$msCompile"
       },
       {
-        "label": "build tests",
-        "command": "find . -name '*.Tests.csproj' | xargs dotnet build -p:GenerateFullPaths=true",
-        "type": "shell",
-        "problemMatcher": "$msCompile"
-      },
-      {
         "label": "run tests",
-        "command": "find . -wholename '*/bin/*.Tests.dll' | xargs dotnet vstest --Parallel",
+        "command": "find . -name '*.Tests.csproj' | xargs dotnet test",
         "type": "shell",
         "problemMatcher": "$msCompile",
         "dependsOn": "build tests"
