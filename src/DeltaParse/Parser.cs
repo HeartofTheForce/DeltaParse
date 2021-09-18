@@ -55,7 +55,9 @@ namespace DeltaParse
             var output = OutputBuilder.InitializeOutput(diffs);
 
             int variableIndex = -1;
-            int? valueLength = null;
+
+            int valueIndex = -1;
+            int valueLength = 0;
 
             int commonLength = 0;
             int diffTemplate = 0;
@@ -64,21 +66,11 @@ namespace DeltaParse
 
             for (int i = 0; i <= diffs.Count; i++)
             {
-                bool tokenProcessed = valueLength != null;
+                bool tokenProcessed = valueIndex != -1;
 
-                int startOffset = 0;
                 if (i < diffs.Count)
                 {
                     var part = diffs[i];
-
-                    if (valueLength != null && part.operation == Operation.INSERT)
-                    {
-                        totalParsedLength += part.text.Length;
-                        valueLength += part.text.Length;
-
-                        tokenProcessed = false;
-                    }
-
                     switch (part.operation)
                     {
                         case Operation.DELETE:
@@ -89,19 +81,27 @@ namespace DeltaParse
 
                                 if (part.text.EndsWith(ParseProcessor.ProcessedToken))
                                 {
+                                    valueIndex = commonLength + diffInput;
                                     valueLength = 0;
                                 }
                             }
                             break;
                         case Operation.INSERT:
                             {
+                                if (tokenProcessed)
+                                {
+                                    totalParsedLength += part.text.Length;
+                                    valueLength += part.text.Length;
+
+                                    tokenProcessed = false;
+                                }
+
                                 diffInput += part.text.Length;
                             }
                             break;
                         case Operation.EQUAL:
                             {
                                 commonLength += part.text.Length;
-                                startOffset = -part.text.Length;
                             }
                             break;
                     }
@@ -109,12 +109,10 @@ namespace DeltaParse
 
                 if (tokenProcessed)
                 {
-                    int valueIndex = commonLength + startOffset + diffInput - valueLength.Value;
-
-                    string parsedValue = ParseProcessor.Postprocess(input.Substring(valueIndex, valueLength.Value), null);
+                    string parsedValue = ParseProcessor.Postprocess(input.Substring(valueIndex, valueLength), null);
                     output = OutputBuilder.TokenParsed(output, tokenNames[variableIndex], parsedValue);
 
-                    valueLength = null;
+                    valueIndex = -1;
                 }
             }
 

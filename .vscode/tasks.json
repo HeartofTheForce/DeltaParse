@@ -1,21 +1,24 @@
 {
     "version": "2.0.0",
     "tasks": [
-      {
-        "label": "build",
-        "command": "dotnet build -p:GenerateFullPaths=true",
-        "options": {
-          "cwd": "src/DeltaParse"
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/DeltaParse.Tests/DeltaParse.Tests.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
         },
-        "type": "shell",
-        "problemMatcher": "$msCompile"
-      },
-      {
-        "label": "run tests",
-        "command": "find . -name '*.Tests.csproj' | xargs dotnet test",
-        "type": "shell",
-        "problemMatcher": "$msCompile",
-        "dependsOn": "build tests"
-      },
+        {
+            "label": "run tests",
+            "command": "find . -name '*.Tests.csproj' | xargs dotnet test",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
+            "dependsOn": "build tests"
+        }
     ]
 }
